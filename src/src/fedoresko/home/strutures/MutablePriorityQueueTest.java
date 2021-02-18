@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.function.Consumer;
 
 public class MutablePriorityQueueTest {
@@ -124,6 +125,83 @@ public class MutablePriorityQueueTest {
         }
 
         pollQueue(queue);
+    }
+
+    @Test
+    public void comparison() {
+        final int N_ELEMENTS = 1000000;
+
+        System.out.println("Measuring queue without mutations...");
+
+        long start = System.nanoTime();
+        PriorityQueue<Integer> reference = new PriorityQueue<>();
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            reference.add((int) (Integer.MAX_VALUE * Math.random()));
+        }
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            reference.poll();
+            reference.add((int) (Integer.MAX_VALUE * Math.random()));
+        }
+        while (!reference.isEmpty()) {
+            reference.poll();
+        }
+        double refTime = System.nanoTime() - start;
+        System.out.println("Reference:     "+ refTime/1000000 +"ms");
+
+        start = System.nanoTime();
+        MutablePriorityQueue<Integer> queue = new MutablePriorityQueue<>();
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            queue.add((int) (Integer.MAX_VALUE * Math.random()));
+        }
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            queue.poll();
+            queue.add((int) (Integer.MAX_VALUE * Math.random()));
+        }
+        while (!queue.isEmpty()) {
+            queue.poll();
+        }
+        double mTime = System.nanoTime() - start;
+        System.out.println("Mutable queue: "+ mTime/1000000 +"ms");
+        System.out.println("Rate: "+(mTime/refTime));
+
+
+        System.out.println("Measuring queue with mutations...");
+        ArrayList<WeightedLabelWithListener> elements = new ArrayList<>();
+        for (int i = 0; i < N_ELEMENTS; i++) {
+            int val = (int) (Integer.MAX_VALUE * Math.random());
+            elements.add(new WeightedLabelWithListener("L"+val, val) );
+        }
+
+        start = System.nanoTime();
+        PriorityQueue<WeightedLabelWithListener> reference1 = new PriorityQueue<>();
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            reference1.add(elements.get(i));
+        }
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            reference1.remove(elements.get(i));
+            reference1.add(elements.get(i + N_ELEMENTS/2));
+        }
+        while (!reference1.isEmpty()) {
+            reference1.poll();
+        }
+        refTime = System.nanoTime() - start;
+        System.out.println("Reference:     "+ refTime/1000000 +"ms");
+
+        start = System.nanoTime();
+        MutablePriorityQueue<WeightedLabelWithListener> queue1 = new MutablePriorityQueue<>(value -> value::setListener);
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            queue1.add(elements.get(i));
+        }
+        for (int i = 0 ; i < N_ELEMENTS/2; i++) {
+            elements.get(i).setWeight((int) (Integer.MAX_VALUE * Math.random()));
+        }
+        while (!queue1.isEmpty()) {
+            queue1.poll();
+        }
+        mTime = System.nanoTime() - start;
+        System.out.println("Mutable queue: "+ mTime/1000000 +"ms");
+        System.out.println("Rate: "+(mTime/refTime));
+
     }
 
     private static class WeightedLabel implements Comparable<WeightedLabel> {

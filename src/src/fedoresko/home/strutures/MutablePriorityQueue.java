@@ -103,9 +103,11 @@ public class MutablePriorityQueue<E> extends AbstractQueue<E> {
 
     private void swapValues(Node a, Node b) {
         E t = a.value; a.value = b.value; b.value = t;
-        ValueSubscriber o = a.valueSubscriber; a.valueSubscriber = b.valueSubscriber; b.valueSubscriber = o;
-        a.valueSubscriber.attach(a);
-        b.valueSubscriber.attach(b);
+        if (a.valueSubscriber != null && b.valueSubscriber != null) {
+            ValueSubscriber o = a.valueSubscriber; a.valueSubscriber = b.valueSubscriber; b.valueSubscriber = o;
+            a.valueSubscriber.attach(a);
+            b.valueSubscriber.attach(b);
+        }
     }
 
     private void remove(Node node) {
